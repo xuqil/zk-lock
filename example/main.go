@@ -1,11 +1,3 @@
-# 基于 Zookeeper 实现的分布式锁
-
-在 go-zookeeper Lock 的基础上新增了`context.Context`，同时能够对给定的`key`加锁，减小锁的颗粒度。
-
-
-## Example
-
-```go
 package main
 
 import (
@@ -58,4 +50,3 @@ func run(conn *zk.Conn, i int) {
 		}
 	}
 }
-```
