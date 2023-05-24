@@ -71,7 +71,7 @@ func NewLock(c *zk.Conn, key string, acl []zk.ACL, opts ...lockOption) *Lock {
 		c:        c,
 		basePath: defaultBasePath,
 		retries:  defaultRetries,
-		key:      key,
+		key:      key + "-",
 		acl:      acl,
 	}
 	for _, opt := range opts {
@@ -171,7 +171,7 @@ func (l *Lock) lockWithData(ctx context.Context, data []byte) error {
 
 func (l *Lock) parseSeq(path string) (int, error) {
 	parts := strings.Split(path, l.key)
-	if len(parts) <= 1 {
+	if len(parts) != 2 || strings.HasPrefix(parts[1], "-") {
 		return 0, errDifferentKey
 	}
 	return strconv.Atoi(parts[len(parts)-1])

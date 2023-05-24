@@ -21,7 +21,11 @@ func main() {
 	defer conn.Close()
 
 	for i := 0; i < 100; i++ {
-		go run(conn, i)
+		if i != 0 && i%10 == 0 {
+			go run(conn, "key", i)
+		} else {
+			go run(conn, "key-", i)
+		}
 	}
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Kill)
@@ -30,23 +34,24 @@ func main() {
 
 }
 
-func run(conn *zk.Conn, i int) {
+func run(conn *zk.Conn, key string, i int) {
 	for {
 		select {
 		case <-notify:
 			return
 		default:
-			lock := zklock.NewLock(conn, "key", zk.WorldACL(zk.PermAll))
+			lock := zklock.NewLock(conn, key, zk.WorldACL(zk.PermAll))
 
 			if err := lock.Lock(context.Background()); err != nil {
-				log.Fatalf("goroutine[%d] lock failed: %s", i, err)
+				log.Fatalf("goroutine[%d] key[%s] lock failed: %s", i, key, err)
 			}
-			log.Printf("goroutine[%d] lock", i)
-			
+			log.Printf("goroutine[%d] key[%s] lock", i, key)
+			time.Sleep(10 * time.Millisecond)
+
 			if err := lock.Unlock(context.Background()); err != nil {
-				log.Fatalf("goroutine[%d] unlock failed: %s", i, err)
+				log.Fatalf("goroutine[%d] key[%s] unlock failed: %s", i, key, err)
 			}
-			log.Printf("goroutine[%d] unlock", i)
+			log.Printf("goroutine[%d] key[%s] unlock", i, key)
 		}
 	}
 }
